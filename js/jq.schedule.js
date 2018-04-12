@@ -38,6 +38,18 @@
             return string;
         };
         
+        //check exist schedule
+        this.isExistShedule = function (start, end, timeline) {
+            console.log(start + "-"+ end + "-" +timeline);
+            return scheduleData.some(function(obj) {
+              return(((obj.start < start && obj.end > start) || 
+                        (obj.start < end && obj.end > end) ||
+                        (obj.start == start && obj.end == end) ||
+                        (obj.start > start && obj.end < end)) && 
+                     obj.timeline == timeline) 
+            });
+        };
+
         var setting = $.extend(defaults,options);
         this.setting = setting;
         var scheduleData = new Array();
@@ -280,39 +292,40 @@
                 $tl.data("timeline",timeline);
                 $timeline.append($tl);
             }
+            
             // Click event
             if (setting.time_click) {
+                var newData = {};
                 $timeline.find (".tl").mousedown( function() {
                     
                     var $bar;
                     var s = element.calcStringTime(jQuery(this).data("time"));
-                    
                     var e = s + setting.widthTime;
+ 
+                    newData["timeline"] = id;
+                    newData["start"] = s;
+                    
+                    newData["end"] = e;
+                    
+                });
+                $timeline.find (".tl").mouseup(function(){
 
-                    var data = {};
-                    data["timeline"] = id;
-                    data["start"] = s;
-                    data["end"] = e;
-
-                    $timeline.mouseover( function(e){
-                        
-                        var tl = jQuery(e.target).data("time");
-                        if(e.target.className == "tl") {
-                            data["end"] = element.calcStringTime($(e.target).data("time")) + setting.widthTime;
-                        }
-                    });
-
-                    $timeline.find (".tl").mouseup( function(){
-                        if (element.isExistShedule(data["start"], data["end"], data["timeline"])) {
-                            alert("You can't add an event at this time");
-                            data = {};
-                            return false;
-                        }
-                        var st = Math.ceil((data["start"] - tableStartTime) / setting.widthTime);
-                        var et = Math.floor((data["end"] - tableStartTime) / setting.widthTime);
-                        var stext = element.formatTime(data["start"]);
-                        var etext = element.formatTime(data["end"]);
-                        var snum = element.getScheduleCount(data["timeline"]);
+                    s = element.calcStringTime(jQuery(this).data("time"));
+                    e = s + setting.widthTime; 
+                    newData["end"] = e;
+                    if(Number(newData["start"]) > Number(newData["end"])) {
+                        newData["end"] = (newData["start"] + setting.widthTime) + (newData["start"] = (newData["end"] - setting.widthTime)) - newData["end"] + setting.widthTime;
+                    }
+                    if (element.isExistShedule(newData["start"], newData["end"], newData["timeline"])) {
+                        alert("You can't add an event at this time");
+                        newData = {};
+                        return false;
+                    } else {
+                        var st = Math.ceil((newData["start"] - tableStartTime) / setting.widthTime);
+                        var et = Math.floor((newData["end"] - tableStartTime) / setting.widthTime);
+                        var stext = element.formatTime(newData["start"]);
+                        var etext = element.formatTime(newData["end"]);
+                        var snum = element.getScheduleCount(newData["timeline"]);
                         var $bar = jQuery('<div class="sc_Bar"><span class="head"><span class="time"></span></span><span class="text"></span><input type="checkbox" name="ckbCheck" value="ok" style="float : right;"></div>');
                         $bar.css({
                             left : (st * setting.widthTimeX),
@@ -322,17 +335,17 @@
                         });
                         
                         $bar.find(".time").text(stext+"-"+etext);
-                        data["text"] = "Newevent";
-                        if(data["text"]){
-                            $bar.find(".text").text(data["text"]);
+                        newData["text"] = "Newevent";
+                        if(newData["text"]){
+                            $bar.find(".text").text(newData["text"]);
                         }
-                        if(data["class"]){
-                            $bar.addClass(data["class"]);
+                        if(newData["class"]){
+                            $bar.addClass(newData["class"]);
                         }
-                        $element.find('.sc_main .timeline').eq(data["timeline"]).append($bar);
-                        if(data["start"] && (data["start"] < data["end"])) {
-                            scheduleData.push(data);
-                        }
+                        $element.find('.sc_main .timeline').eq(newData["timeline"]).append($bar);
+                    
+                        scheduleData.push(newData);
+                    
                         // key
                         var key = scheduleData.length - 1;
                         $bar.data("sc_key",key);
@@ -346,7 +359,7 @@
                                 }
                             }
                         });
-                        var timelineNum = data["timeline"];
+                        var timelineNum = newData["timeline"];
                         element.resetBarPosition(timelineNum);
 
                         var $node = $element.find(".sc_Bar");
@@ -446,9 +459,8 @@
                                 }
                             }
                         });
-                        data = {};
-                    });
-                    // setting.time_click(this,jQuery(this).data("time"),jQuery(this).data("timeline"),timelineData[jQuery(this).data("timeline")]);
+                        newData = {};
+                    }
                 });
             }
             $element.find('.sc_main').append($timeline);
@@ -527,18 +539,6 @@
             }
 
             return data;
-        };
-        // check exist schedule
-        this.isExistShedule = function (start, end, timeline) {
-            console.log(start + "-"+ end + "-" +timeline);
-            console.log(scheduleData);
-            return scheduleData.some(function(obj) {
-              return (((obj.start < start && obj.end > start) || 
-                        (obj.start < end && obj.end > end) ||
-                        (obj.start == start && obj.end == end) ||
-                        (obj.start > start && obj.end < end)) && 
-                     obj.timeline == timeline);
-            });
         };
         // Change text
         this.rewriteBarText = function(node,data){
