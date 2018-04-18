@@ -1,4 +1,9 @@
 
+/**
+    
+* Customize by Thu(Kid1412)
+
+*/
 (function($) {
     $.fn.timeSchedule = function(options){
         var defaults = {
@@ -295,26 +300,82 @@
             
             // Click event
             if (setting.time_click) {
-                var newData = {};
-                $timeline.find (".tl").mousedown( function() {
-                    
-                    var $bar;
+                var newData = {};                
+                $timeline.find (".tl").mousedown(function() {
+                    var $creating = jQuery('<div class="creating"></div>');
                     var s = element.calcStringTime(jQuery(this).data("time"));
                     var e = s + setting.widthTime;
  
                     newData["timeline"] = id;
                     newData["start"] = s;
-                    
                     newData["end"] = e;
                     
-                });
-                $timeline.find (".tl").mouseup(function(){
+                    var st = Math.ceil((newData["start"] - tableStartTime) / setting.widthTime);
+                    var et = Math.floor((newData["end"] - tableStartTime) / setting.widthTime);
 
-                    s = element.calcStringTime(jQuery(this).data("time"));
-                    e = s + setting.widthTime; 
-                    newData["end"] = e;
+                    if(Number(newData["start"]) > Number(newData["end"])) {
+                        st = Math.ceil(((newData["end"] - setting.widthTime) - tableStartTime) / setting.widthTime);
+                        et = Math.floor(((newData["start"] + setting.widthTime)- tableStartTime) / setting.widthTime);
+                    }
+                    
+                    if(Number(newData["start"]) == Number(newData["end"])) {
+                        st = Math.ceil(((newData["start"] - setting.widthTime) - tableStartTime) / setting.widthTime);
+                        et = Math.floor(((newData["end"] + setting.widthTime) - tableStartTime) / setting.widthTime);
+                    }
+
+                    $creating.css({
+                        left : (st * setting.widthTimeX),
+                        top : ((0 * setting.timeLineY) + setting.timeLinePaddingTop),
+                        width : ((et - st) * setting.widthTimeX),
+                        height : (setting.timeLineY)
+                    });
+                    $element.find('.sc_main .timeline').eq(newData["timeline"]).append($creating);
+
+                    $timeline.mouseover( function(elem) {
+
+                        var tl = jQuery(elem.target).data("time");
+                        if(elem.target.className == "tl") {
+                            newData["end"] = element.calcStringTime($(elem.target).data("time")) + setting.widthTime;
+                        }
+                        
+                        var st = Math.ceil((newData["start"] - tableStartTime) / setting.widthTime);
+                        var et = Math.floor((newData["end"] - tableStartTime) / setting.widthTime);
+                        if(Number(newData["start"]) > Number(newData["end"])) {
+                            st = Math.ceil(((newData["end"] - setting.widthTime) - tableStartTime) / setting.widthTime);
+                            et = Math.floor(((newData["start"] + setting.widthTime)- tableStartTime) / setting.widthTime);
+                                
+                        }
+                        
+                        if(Number(newData["start"]) == Number(newData["end"])) {
+                            
+                            st = Math.ceil(((newData["start"] - setting.widthTime) - tableStartTime) / setting.widthTime);
+                            et = Math.floor(((newData["end"] + setting.widthTime) - tableStartTime) / setting.widthTime);
+                        }
+                        $creating.css({
+                            left : (st * setting.widthTimeX),
+                            top : ((0 * setting.timeLineY) + setting.timeLinePaddingTop),
+                            width : ((et - st) * setting.widthTimeX),
+                            height : (setting.timeLineY)
+                        });
+                        $element.find('.sc_main .timeline').eq(newData["timeline"]).append($creating);
+                    });             
+                });
+
+                $timeline.mouseup(function(elem){
+                    $timeline.find(".creating").remove();
+                    $timeline.off("mouseover");
+
+                    var tl = jQuery(elem.target).data("time");
+                    if(elem.target.className == "tl") {
+                        newData["end"] = element.calcStringTime($(elem.target).data("time")) + setting.widthTime;
+                    }
+                    
                     if(Number(newData["start"]) > Number(newData["end"])) {
                         newData["end"] = (newData["start"] + setting.widthTime) + (newData["start"] = (newData["end"] - setting.widthTime)) - newData["end"] + setting.widthTime;
+                    }
+                    if(Number(newData["start"]) == Number(newData["end"])) {
+                        newData["start"] -= setting.widthTime;
+                        newData["end"] += setting.widthTime;
                     }
                     if (element.isExistShedule(newData["start"], newData["end"], newData["timeline"])) {
                         alert("You can't add an event at this time");
@@ -342,6 +403,7 @@
                         if(newData["class"]){
                             $bar.addClass(newData["class"]);
                         }
+
                         $element.find('.sc_main .timeline').eq(newData["timeline"]).append($bar);
                     
                         scheduleData.push(newData);
@@ -359,8 +421,8 @@
                                 }
                             }
                         });
-                        var timelineNum = newData["timeline"];
-                        element.resetBarPosition(timelineNum);
+ 
+                        element.resetBarPosition(newData["timeline"]);
 
                         var $node = $element.find(".sc_Bar");
                         // move node.

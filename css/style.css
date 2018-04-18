@@ -124,6 +124,15 @@
 	height:100%;
 	border-right:solid 1px #CCC;
 }
-#schedule .sc_main_scroll .sc_main .tl:hover{
+/* #schedule .sc_main_scroll .sc_main .tl:hover{
 	background:#F0F0F0;
+} */
+#schedule .creating {
+	position:absolute;
+	cursor:pointer;
+	z-index:100;
+	box-shadow: 2px 2px 4px #333;
+	-moz-box-shadow: 2px 2px 4px #333;
+	-webkit-box-shadow: 2px 2px 4px #333;
+	background:#dbaaaa;
 }
